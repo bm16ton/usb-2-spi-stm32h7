@@ -1,0 +1,10 @@
+--- include/libopencm3/stm32/common/adc_common_v2.h
++++ include/libopencm3/stm32/common/adc_common_v2.h
+@@ -152,6 +154,7 @@ specific memorymap.h header before including this header file.*/
+ #define ADC_CFGR1_EXTEN_BOTH_EDGES	(0x3 << 10)
+ /**@}*/
+ 
++#ifndef STM32H7
+ /** ALIGN: Data alignment */
+ #define ADC_CFGR1_ALIGN		(1 << 5)
+ 
