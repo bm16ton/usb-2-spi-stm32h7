@@ -39,9 +39,6 @@ struct spi_tiny_usb {
 	struct gpiod_lookup_table *lookup[5];
 	struct gpio_desc **cs_gpios;
 
-	u8 txrx_cmd;  //todo despite usb2 simplex add a txrx function
-	u8 rx_cmd;
-	u8 tx_cmd;
 	u8 xfer_txbuf[SZ_512K];
 	u8 xfer_rxbuf[SZ_512K];
 	u16 last_mode;   //used to compare old/new spi modes if diff update controller
@@ -54,10 +51,10 @@ struct spi_tiny_usb {
 
 static void setcs(struct spi_device *spi, bool enable)
 {
-	struct spi_tiny_usb *priv = spi_controller_get_devdata(spi->master);
-	u16 cs = spi->chip_select;
-
-	gpiod_set_raw_value_cansleep(priv->cs_gpios[cs], enable);
+//	struct spi_tiny_usb *priv = spi_controller_get_devdata(spi->master);
+//	u16 cs = spi->chip_select;
+;
+//	gpiod_set_raw_value_cansleep(priv->cs_gpios[cs], enable); // cs now firmware controlled so just nop for now
 }
 
 
@@ -96,8 +93,6 @@ static int spi_tiny_usb_xfer_one(struct spi_master *master, struct spi_message *
 		if (list_is_last(&t->transfer_list, &m->transfers))
 //			spi_flags |= FLAGS_END;
 
- // todo fix
-
         if (priv->oldlsb != (spi->mode & SPI_LSB_FIRST)) {
         printk("mode lsb claims change \r\n");
             if (priv->oldlsb != 0x08) {
@@ -126,18 +121,10 @@ static int spi_tiny_usb_xfer_one(struct spi_master *master, struct spi_message *
 	if (priv->last_mode != spi->mode) {
 		u8 spi_mode = spi->mode & (SPI_CPOL | SPI_CPHA);
 		printk("spi_mode = %d\r\n", spi_mode);
-
-        //wait = iops->ctrl_xfer(priv->intf, 68, spi_mode, spi_mode, NULL, 0);
         priv->iops->setup_data(priv->intf, 68, spi_mode, spi_mode, NULL, 0);
-           if (wait) {
-           ;
-           }
-
 		}
 
     priv->last_mode = spi->mode;
-
-
 
    if (priv->last_bpw != spi->bits_per_word) {
        priv->iops->setup_data(priv->intf, 69, spi->bits_per_word, spi->bits_per_word, NULL, 0);
@@ -149,7 +136,6 @@ static int spi_tiny_usb_xfer_one(struct spi_master *master, struct spi_message *
    }
 
    priv->last_bpw = spi->bits_per_word;
-
 
 		printk("tx: %p rx: %p len: %d speed: %d flags: %d delay: %d\n", t->tx_buf,
 			t->rx_buf, t->len, t->speed_hz, spi_flags, t->delay.value);
@@ -262,7 +248,7 @@ static int spi_tiny_usb_xfer_one(struct spi_master *master, struct spi_message *
             (void)iops->read_data(priv->intf, priv->xfer_rxbuf, t->len);
             memcpy(t->rx_buf, priv->xfer_rxbuf, t->len);
             m->actual_length += t->len;
-		}
+		    }
 		}
 		printk("frame_length = %d actual_length = %d\n", m->frame_length, m->actual_length);
         spi_finalize_current_message(master);
@@ -311,7 +297,7 @@ static int usbspi_init_io(struct spi_controller *master, unsigned int dev_idx)
 	label = devm_kasprintf(&pdev->dev, GFP_KERNEL, "usb-tiny-usb.%d",
 			       pdev->id);
 	if (!label) {
-	    printk("no mem for labwls\n");
+	    printk("no mem for labels\n");
 		devm_kfree(&pdev->dev, (void *)lookup->dev_id);
 		devm_kfree(&pdev->dev, lookup);
 		return -ENOMEM;
@@ -385,12 +371,11 @@ static int usbspi_probe(struct platform_device *pdev)
 	priv->intf = to_usb_interface(dev->parent);
 	priv->iops = pd->ops;
 	master->bus_num = -1;
-	master->mode_bits = SPI_CPOL | SPI_CPHA; //| SPI_LOOP |
-			  //  SPI_CS_HIGH | SPI_LSB_FIRST;
+	master->mode_bits = SPI_CPOL | SPI_CPHA | SPI_CS_HIGH | SPI_LSB_FIRST; //| SPI_LOOP |
 	master->num_chipselect = max_cs;
 	master->min_speed_hz = 450;
 	master->max_speed_hz = 30000000;
-	master->bits_per_word_mask = SPI_BPW_MASK(8);
+	master->bits_per_word_mask = SPI_BPW_RANGE_MASK(4, 16);
 	master->set_cs = setcs;
 	master->transfer_one_message = spi_tiny_usb_xfer_one;
 	master->auto_runtime_pm = false;

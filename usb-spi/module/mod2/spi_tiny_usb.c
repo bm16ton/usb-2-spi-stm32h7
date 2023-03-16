@@ -675,7 +675,7 @@ static const struct software_node nrf24_node = {
 };
 
 static struct dev_io_desc_data usb_spi_bus_dev_io[] = {
-         { "interrupts", 4, GPIO_ACTIVE_HIGH },
+       { "interrupts", 4, GPIO_ACTIVE_HIGH },
        { "ce", 1, GPIO_ACTIVE_HIGH },
        { "csn", 2, GPIO_ACTIVE_LOW },
 };
