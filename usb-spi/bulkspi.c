@@ -46,6 +46,7 @@
 
 int irqfire = 1;
 int irqtype = EXTI_TRIGGER_FALLING;
+int cshigh = 0;
 
 static void my_delay_2( void )
 {
@@ -155,6 +156,7 @@ static void usbgpio_input(int gpio)
 #define CMD_BPW        69
 #define CMD_CSON       71
 #define CMD_CSOFF      72
+#define CMD_CSMODE     73
 #define CMD_LSB        160
 
 
@@ -311,6 +313,10 @@ static enum usbd_request_return_codes spi_control_request(
         {
         __asm__("nop");
         }
+        return USBD_REQ_HANDLED;
+
+    case CMD_CSMODE:
+        cshigh = req->wValue;
         return USBD_REQ_HANDLED;
 
     case CMD_TXZEROS:
@@ -658,7 +664,11 @@ void spi_ss_out_cb(usbd_device *dev, uint8_t ep)
 
     usbd_ep_nak_set(dev, ep, 1);
         if (x > 0) {
+        if (cshigh == 0) {
         gpio_clear(GPIOA, GPIO8);
+        } else {
+        gpio_set(GPIOA, GPIO8);
+        }
         for (uint16_t i = 0; i < x; i++)
         {
             while (!(SPI_SR(SPI2) & SPI_SR_TXP));  //todo reading/writing should be one op
@@ -669,9 +679,12 @@ void spi_ss_out_cb(usbd_device *dev, uint8_t ep)
             }
 		    spibuf512[i] = my_spi_flush(SPI2);
 		        }
+		     if (cshigh == 0) {
 		     gpio_set(GPIOA, GPIO8);
+		     } else {
+		     gpio_clear(GPIOA, GPIO8);
 		     }
-
+        }
 	usbd_ep_nak_set(dev, ep, 0);
 
 }

@@ -49,6 +49,7 @@ struct spi_tiny_usb {
 	u16 last_bpw; // same as two above but for bits per word
 	u16 oldlsb; // same same for msb/lsb
 	int oldspihz;
+	int csmode;
 };
 
 static void setcs(struct spi_device *spi, bool enable)
@@ -79,6 +80,17 @@ static int spi_tiny_usb_xfer_one(struct spi_master *master, struct spi_message *
 //      setcs(spi, false);
 
     m->actual_length = 0;
+
+//	printk("cs mode %ld\n", (spi->mode & SPI_CS_HIGH));
+    if (priv->csmode != (spi->mode & SPI_CS_HIGH)) {
+	    if ((spi->mode & SPI_CS_HIGH) == 0) {
+		// low chip select
+		iops->setup_data(priv->intf, 73, 0x0, 0x0, NULL, 0);
+	    } else {
+	    iops->setup_data(priv->intf, 73, (spi->mode & SPI_CS_HIGH), (spi->mode & SPI_CS_HIGH), NULL, 0);
+	    }
+	priv->csmode = (spi->mode & SPI_CS_HIGH);
+	}
 
 
 	list_for_each_entry(t, &m->transfers, transfer_list) {
