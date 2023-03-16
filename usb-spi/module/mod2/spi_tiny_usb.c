@@ -263,7 +263,7 @@ _direction_output(struct gpio_chip *chip,
 {
 	   struct spi_tiny_usb *data = container_of(chip, struct spi_tiny_usb,
                                       chip);
-   printk("Setting pin to OUTPUT gppio-offset %d\n", offset);
+ //  printk("Setting pin to OUTPUT gppio-offset %d\n", offset);
 
         usbval = 2;
 		offs = offset;
@@ -280,7 +280,7 @@ _direction_input(struct gpio_chip *chip,
    struct spi_tiny_usb *data = container_of(chip, struct spi_tiny_usb,
                                       chip);
 
-   printk("Setting pin to INPUT gpio-offset %d\n", offset);
+//   printk("Setting pin to INPUT gpio-offset %d\n", offset);
 
         usbval = 1;
 		offs = offset;
@@ -325,9 +325,8 @@ void set_irq_disabled(struct irq_data *irqd)
 
 static void usb_gpio_irq_disable(struct irq_data *irqd)
 {
-    struct gpio_chip *chip = irq_data_get_irq_chip_data(irqd);
-    struct spi_tiny_usb *data = container_of(chip, struct spi_tiny_usb,
-                                      chip);
+//    struct gpio_chip *chip = irq_data_get_irq_chip_data(irqd);
+//    struct spi_tiny_usb *data = container_of(chip, struct spi_tiny_usb, chip);
 	/* Is that needed? */
 //	if (!chip->irq_enabled[4])
 //		return;
@@ -344,12 +343,12 @@ static int usbirq_irq_set_type(struct irq_data *irqd, unsigned type)
     struct gpio_chip *chip = irq_data_get_irq_chip_data(irqd);
     struct spi_tiny_usb *data = container_of(chip, struct spi_tiny_usb,
                                       chip);
-    int pin = irqd_to_hwirq(irqd);
-    pr_info("irq pin = %d\n", pin);
+//    int pin = irqd_to_hwirq(irqd);
+//    pr_info("irq pin = %d\n", pin);
     irqt = type;
     irqyup = 1;
     usb_gpio_irq_enable(irqd);
-    pr_info("setting irq type GPIO_irqNumber = %d\n", GPIO_irqNumber);
+//    pr_info("setting irq type GPIO_irqNumber = %d\n", GPIO_irqNumber);
     	switch (type) {
     case IRQ_TYPE_NONE:
 		   usbval = 9;
@@ -743,7 +742,7 @@ static struct platform_device *usbspi_dev_register(struct spi_tiny_usb *priv,
 	size_t lookup_size, tbl_size;
 	int i, ret;
 
-    printk("spi_tiny_usb Start of platform probe\n");
+//    printk("spi_tiny_usb Start of platform probe\n");
 
     pd->spi_info[0].irq = GPIO_irqNumber;
     irq_set_irq_type(GPIO_irqNumber, irqt);
