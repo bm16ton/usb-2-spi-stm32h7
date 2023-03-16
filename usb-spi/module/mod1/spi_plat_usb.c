@@ -76,7 +76,7 @@ static int spi_tiny_usb_xfer_one(struct spi_master *master, struct spi_message *
     interface = usb_get_intfdata(priv->intf);
 
 
-      setcs(spi, false);
+//      setcs(spi, false);
 
     m->actual_length = 0;
 
@@ -198,7 +198,7 @@ static int spi_tiny_usb_xfer_one(struct spi_master *master, struct spi_message *
 		}
         printk("frame_length = %d actual_length = %d\n", m->frame_length, m->actual_length);
 		spi_finalize_current_message(master);
-		setcs(spi, true);
+//		setcs(spi, true);
     	m->status = ret;
 	    return 0;
 		}
@@ -265,7 +265,7 @@ static int spi_tiny_usb_xfer_one(struct spi_master *master, struct spi_message *
 		if (t->delay.value)
 			udelay(t->delay.value);
         }
-    setcs(spi, true);
+ //   setcs(spi, true);
 	m->status = ret;
 	return 0;
 }

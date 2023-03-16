@@ -658,6 +658,7 @@ void spi_ss_out_cb(usbd_device *dev, uint8_t ep)
 
     usbd_ep_nak_set(dev, ep, 1);
         if (x > 0) {
+        gpio_clear(GPIOA, GPIO8);
         for (uint16_t i = 0; i < x; i++)
         {
             while (!(SPI_SR(SPI2) & SPI_SR_TXP));  //todo reading/writing should be one op
@@ -668,7 +669,9 @@ void spi_ss_out_cb(usbd_device *dev, uint8_t ep)
             }
 		    spibuf512[i] = my_spi_flush(SPI2);
 		        }
+		     gpio_set(GPIOA, GPIO8);
 		     }
+
 	usbd_ep_nak_set(dev, ep, 0);
 
 }

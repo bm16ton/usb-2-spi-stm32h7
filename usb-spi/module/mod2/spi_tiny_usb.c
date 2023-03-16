@@ -192,6 +192,7 @@ int_cb(struct urb *urb)
 //       printk(KERN_ALERT "irq alive and fired\n");
        local_irq_save(flags);
        generic_handle_irq(GPIO_irqNumber);
+       local_irq_disable();
        local_irq_restore(flags);
        }
 
@@ -334,7 +335,7 @@ static void usb_gpio_irq_disable(struct irq_data *irqd)
    usbval = 9;
    offs = 1;
    gpio_val = 9;
-   schedule_work(&data->work);
+//   schedule_work(&data->work);
    set_irq_disabled(irqd);
 }
 
@@ -386,7 +387,7 @@ static int usbirq_irq_set_type(struct irq_data *irqd, unsigned type)
            offs = 6;
            gpio_val = 9;
            schedule_work(&data->work);
-           edget = GPIO_ACTIVE_LOW;
+           edget = GPIO_ACTIVE_HIGH;
 		break;
 	default:
 		return -EINVAL;
@@ -951,6 +952,8 @@ static int spi_tiny_usb_probe(struct usb_interface *interface,
     mutex_init(&priv->io_mutex);
 	mutex_init(&priv->ops_mutex);
     mutex_init(&priv->spi_buf_lock);
+
+
 
 	ret = devm_gpiochip_add_data(dev, &priv->chip, priv);
 	if (ret < 0) {
