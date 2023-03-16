@@ -36,7 +36,6 @@ struct bulk_desc {
 	int timeout;
 };
 
-
 struct usbspi_intf_ops {
 	int (*bulk_xfer)(struct usb_interface *interface, struct bulk_desc *);
 	int (*ctrl_xfer)(struct usb_interface *intf, struct ctrl_desc *desc);
@@ -60,8 +59,4 @@ struct dev_io_desc_data {
 	unsigned int flags;
 };
 
-
-
-void csset(struct spi_device *spi, bool enable);
-int spi_tiny_usb_xfer_one_two(struct spi_master *master, struct spi_message *m);
 #endif

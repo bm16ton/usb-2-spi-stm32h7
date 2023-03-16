@@ -81,7 +81,6 @@ static int spi_tiny_usb_xfer_one(struct spi_master *master, struct spi_message *
 
     m->actual_length = 0;
 
-//	printk("cs mode %ld\n", (spi->mode & SPI_CS_HIGH));
     if (priv->csmode != (spi->mode & SPI_CS_HIGH)) {
 	    if ((spi->mode & SPI_CS_HIGH) == 0) {
 		// low chip select
@@ -98,23 +97,18 @@ static int spi_tiny_usb_xfer_one(struct spi_master *master, struct spi_message *
 //			spi_flags |= FLAGS_END;
 
  // todo fix
- /*
-        if (priv->oldlsb != (priv->spidev->mode & SPI_LSB_FIRST)) {
+
+        if (priv->oldlsb != (spi->mode & SPI_LSB_FIRST)) {
         printk("mode lsb claims change \r\n");
             if (priv->oldlsb != 0x08) {
-
-               //iops->ctrl_xfer(priv->intf, 160, 0x08, 0x08, NULL, 0);
-              priv->iops->setup_data(priv->intf, 160, 0x08, 0x08, NULL, 0);
+               priv->iops->setup_data(priv->intf, 160, 0x08, 0x08, NULL, 0);
                 } else {
                priv->iops->setup_data(priv->intf, 160, 0x00, 0x00, NULL, 0);
-              //  iops->ctrl_xfer(priv->intf, 160, 0x00, 0x00, NULL, 0);
-              //  priv->iops->setup_data(priv->intf, 160, 0x00, 0x00);
-
-            }
+                }
         }
 
-        priv->oldlsb = (priv->spidev->mode & SPI_LSB_FIRST);
-        */
+        priv->oldlsb = (spi->mode & SPI_LSB_FIRST);
+
 
         if (priv->oldspihz != t->speed_hz) {
         printk("setting clock \r\n");
@@ -144,20 +138,18 @@ static int spi_tiny_usb_xfer_one(struct spi_master *master, struct spi_message *
     priv->last_mode = spi->mode;
 
 
-/*
-   if (priv->last_bpw != priv->spidev->bits_per_word) {
 
-   //   wait = iops->ctrl_xfer(priv->intf, 69, priv->spidev->bits_per_word, priv->spidev->bits_per_word, NULL, 0);
-       priv->iops->setup_data(priv->intf, 69, priv->spidev->bits_per_word, priv->spidev->bits_per_word, NULL, 0);
+   if (priv->last_bpw != spi->bits_per_word) {
+       priv->iops->setup_data(priv->intf, 69, spi->bits_per_word, spi->bits_per_word, NULL, 0);
            if (wait) {
            ;
            }
 
-   printk("changed bits_per_word to %d\r\n", priv->spidev->bits_per_word);
+   printk("changed bits_per_word to %d\r\n", spi->bits_per_word);
    }
 
-   priv->last_bpw = priv->spidev->bits_per_word;
-*/
+   priv->last_bpw = spi->bits_per_word;
+
 
 		printk("tx: %p rx: %p len: %d speed: %d flags: %d delay: %d\n", t->tx_buf,
 			t->rx_buf, t->len, t->speed_hz, spi_flags, t->delay.value);
