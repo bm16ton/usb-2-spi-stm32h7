@@ -17,5 +17,5 @@ endif
 .PHONY: clean
 
 clean:
-	rm -f mod1/modules.order mod1/module.symvers mod1/Module.symvers mod1/*.o mod1/*.ko mod1/*.mod.* mod1/*.mod mod2/modules.order mod2/Module.symvers mod2/*.o mod2/*.ko mod2/*.mod.* mod2/*.mod modules.order Module.symvers *.o *.ko *.mod.* *.mod
+	rm -f mod1/modules.order mod1/module.symvers mod1/Module.symvers mod1/*.o mod1/*.ko mod1/*.mod.* mod1/*.mod mod1/*.cmd mod1/.*.cmd mod2/modules.order mod2/Module.symvers mod2/*.o mod2/*.ko mod2/*.mod.* mod2/*.mod mod2/*.cmd mod2/.*.cmd modules.order Module.symvers *.o *.ko *.mod.* *.mod
 
