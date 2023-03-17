@@ -44,6 +44,9 @@
 #define IRQ_TYPE_LEVEL_HIGH	0x00000004
 #define IRQ_TYPE_LEVEL_LOW	0x00000008
 
+int CSPORT = GPIO1_PORT;
+int CSPIN = GPIO1_PIN;
+
 int irqfire = 1;
 int irqtype = EXTI_TRIGGER_FALLING;
 int cshigh = 0;
@@ -157,6 +160,7 @@ static void usbgpio_input(int gpio)
 #define CMD_CSON       71
 #define CMD_CSOFF      72
 #define CMD_CSMODE     73
+#define CMD_CSNUM      76
 #define CMD_LSB        160
 
 
@@ -317,6 +321,22 @@ static enum usbd_request_return_codes spi_control_request(
 
     case CMD_CSMODE:
         cshigh = req->wValue;
+        return USBD_REQ_HANDLED;
+
+    case CMD_CSNUM:
+        if (req->wValue == 0) {
+        CSPORT = GPIOA;
+        CSPIN = GPIO8;
+        } else if (req->wValue == 1) {
+        CSPORT = GPIOC;
+        CSPIN = GPIO7;
+        } else if (req->wValue == 2) {
+        CSPORT = GPIOG;
+        CSPIN = GPIO7;
+        } else if (req->wValue == 3) {
+        CSPORT = GPIOJ;
+        CSPIN = GPIO11;
+        }
         return USBD_REQ_HANDLED;
 
     case CMD_TXZEROS:
@@ -665,9 +685,9 @@ void spi_ss_out_cb(usbd_device *dev, uint8_t ep)
     usbd_ep_nak_set(dev, ep, 1);
         if (x > 0) {
         if (cshigh == 0) {
-        gpio_clear(GPIOA, GPIO8);
+        gpio_clear(CSPORT, CSPIN);
         } else {
-        gpio_set(GPIOA, GPIO8);
+        gpio_set(CSPORT, CSPIN);
         }
         for (uint16_t i = 0; i < x; i++)
         {
@@ -680,9 +700,9 @@ void spi_ss_out_cb(usbd_device *dev, uint8_t ep)
 		    spibuf512[i] = my_spi_flush(SPI2);
 		        }
 		     if (cshigh == 0) {
-		     gpio_set(GPIOA, GPIO8);
+		     gpio_set(CSPORT, CSPIN);
 		     } else {
-		     gpio_clear(GPIOA, GPIO8);
+		     gpio_clear(CSPORT, CSPIN);
 		     }
         }
 	usbd_ep_nak_set(dev, ep, 0);

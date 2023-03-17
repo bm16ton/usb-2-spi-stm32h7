@@ -14,7 +14,6 @@ The i2c interface uses the kernels built in i2c-tiny driver so no special setup 
 + Switch firmware to use dma on transfers with size over 16
 + add microwire/3 wire support
 + Add spi-mem functions for spi flash
-+ Add support for additional cs pins for multiple devices
 + Try compression for higher speed spi freq's too fast for usbhs
 + Try to find a way to get more fine grained control over spi clock
 + Send back actual spi clock freq after setting it compared to what was requested

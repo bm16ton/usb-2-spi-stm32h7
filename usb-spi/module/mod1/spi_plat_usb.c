@@ -47,6 +47,7 @@ struct spi_tiny_usb {
 	u16 oldlsb; // same same for msb/lsb
 	int oldspihz;
 	int csmode;
+	int csnum;
 };
 
 static void setcs(struct spi_device *spi, bool enable)
@@ -77,6 +78,14 @@ static int spi_tiny_usb_xfer_one(struct spi_master *master, struct spi_message *
 //      setcs(spi, false);
 
     m->actual_length = 0;
+
+    if (priv->csnum != spi->chip_select) {
+        iops->lock(priv->intf);
+        iops->setup_data(priv->intf, 76, spi->chip_select, spi->chip_select, NULL, 0);
+        iops->unlock(priv->intf);
+//        printk("switched cable select to %d\n", spi->chip_select);
+        }
+
 
     if (priv->csmode != (spi->mode & SPI_CS_HIGH)) {
 	    if ((spi->mode & SPI_CS_HIGH) == 0) {
