@@ -412,7 +412,8 @@ void i2c_init(void)
 	i2c_reset(I2C3);
     i2c_disable_analog_filter(I2C3);
 	i2c_set_digital_filter(I2C3, 0);
-	i2c_set_speed(I2C3, i2c_speed_fm_400k, 8);
+//	i2c_set_speed(I2C3, i2c_speed_fm_400k, 8);
+	i2c_set_speed(I2C3, i2c_speed_fmp_1m, 8);
 	i2c_set_7bit_addr_mode(I2C3);
 	i2c_peripheral_enable(I2C3);
 	i2c_set_own_7bit_slave_address(I2C3, 0x00);
@@ -553,283 +554,6 @@ scb_reset_system();
 
 
 
-// When starting to learn coding I finally figured out how to send one number, but not receive so made
-// usb to led drivers etc, then filled in the rest of control packet over time and finally rec. But looking
-// at the following code you can see where and when I figured out the rest IE wValue, index,request
-/*
-static enum usbd_request_return_codes usb_control_gpio_request(
-    usbd_device *usbd_dev, struct usb_setup_data *req, uint8_t **buf,
-    uint16_t *len,
-    void (**complete)(usbd_device *, struct usb_setup_data *req))
-{
-    (void)complete;
-	(void)usbd_dev;
-
-    if (req->bRequest > 0x59) {
-        return USBD_REQ_NEXT_CALLBACK;
-    }
-
-   (*len) = 1;
-   (*buf)[0] = 1; //success
-
-   if (req->wValue == 1)
-     {
-        if ( req->wIndex == 0 )
-			{
-				usbgpio_input(1);
-				return USBD_REQ_HANDLED;
-			}
-	    else if ( req->wIndex == 1 )
-			{
-				usbgpio_input(2);
-				return USBD_REQ_HANDLED;
-			}
-	    else if ( req->wIndex == 2 )
-			{
-				usbgpio_input(3);
-				return USBD_REQ_HANDLED;
-			}
-	    else if ( req->wIndex == 3 )
-			{
-				usbgpio_input(4);
-				return USBD_REQ_HANDLED;
-			}
-		else if ( req->wIndex == 4 )
-			{
-				usbgpio_input(5);
-				return USBD_REQ_HANDLED;
-			}
-      }
-   else if (req->wValue == 2)
-     {
-     if ( req->wIndex == 0 )
-			{
-				usbgpio_output(1);
-				return USBD_REQ_HANDLED;
-			}
-	    else if ( req->wIndex == 1 )
-			{
-				usbgpio_output(2);
-				return USBD_REQ_HANDLED;
-			}
-	    else if ( req->wIndex == 2 )
-			{
-				usbgpio_output(3);
-				return USBD_REQ_HANDLED;
-			}
-	    else if ( req->wIndex == 3 )
-			{
-				usbgpio_output(4);
-				return USBD_REQ_HANDLED;
-			}
-		else if ( req->wIndex == 4 )
-			{
-				usbgpio_output(5);
-				return USBD_REQ_HANDLED;
-			}
-      }
-   else if (req->wValue == 3)
-     {
-     if ( req->wIndex == 0 )
-			{
-            if (gpio_get(GPIO1_PORT, GPIO1_PIN)) {
-            	(*buf)[0] = 1;
-		        (*buf)[1] = 4;
-		        (*buf)[2] = 4;
-		        (*buf)[3] = 4;
-			    *len = sizeof(buf);
-			    return USBD_REQ_HANDLED;
-			} else {
-				(*buf)[0] = 1;
-		        (*buf)[1] = 3;
-		        (*buf)[2] = 3;
-		        (*buf)[3] = 3;
-			    *len = sizeof(buf);
-			    return USBD_REQ_HANDLED;
-			}
-			return USBD_REQ_HANDLED;
-			}
-	    else if ( req->wIndex == 1 )
-			{
-            if (gpio_get(GPIO2_PORT, GPIO2_PIN)) {
-            	(*buf)[0] = 1;
-		        (*buf)[1] = 4;
-		        (*buf)[2] = 4;
-		        (*buf)[3] = 4;
-			    *len = sizeof(buf);
-			    return USBD_REQ_HANDLED;
-			} else {
-				(*buf)[0] = 1;
-		        (*buf)[1] = 3;
-		        (*buf)[2] = 3;
-		        (*buf)[3] = 3;
-			    *len = sizeof(buf);
-			    return USBD_REQ_HANDLED;
-			}
-		    return USBD_REQ_HANDLED;
-		   }
-	    else if ( req->wIndex == 2 )
-			{
-            if (gpio_get(GPIO3_PORT, GPIO3_PIN)) {
-            	(*buf)[0] = 1;
-		        (*buf)[1] = 4;
-		        (*buf)[2] = 4;
-		        (*buf)[3] = 4;
-			    *len = sizeof(buf);
-			    return USBD_REQ_HANDLED;
-			} else {
-				(*buf)[0] = 1;
-		        (*buf)[1] = 3;
-		        (*buf)[2] = 3;
-		        (*buf)[3] = 3;
-			    *len = sizeof(buf);
-			    return USBD_REQ_HANDLED;
-			}
-			return USBD_REQ_HANDLED;
-			}
-		 else if ( req->wIndex == 3 )
-			{
-            if (gpio_get(GPIO4_PORT, GPIO4_PIN)) {
-            	(*buf)[0] = 1;
-		        (*buf)[1] = 4;
-		        (*buf)[2] = 4;
-		        (*buf)[3] = 4;
-			    *len = sizeof(buf);
-			    return USBD_REQ_HANDLED;
-			} else {
-				(*buf)[0] = 1;
-		        (*buf)[1] = 3;
-		        (*buf)[2] = 3;
-		        (*buf)[3] = 3;
-			    *len = sizeof(buf);
-			    return USBD_REQ_HANDLED;
-			}
-			return USBD_REQ_HANDLED;
-			}
-		else if ( req->wIndex == 4 )
-			{
-            if (gpio_get(GPIO5_PORT, GPIO5_PIN)) {
-            	(*buf)[0] = 1;
-		        (*buf)[1] = 4;
-		        (*buf)[2] = 4;
-		        (*buf)[3] = 4;
-			    *len = 4;
-			    return 1;
-			} else {
-				(*buf)[0] = 0;
-		        (*buf)[1] = 3;
-		        (*buf)[2] = 3;
-		        (*buf)[3] = 3;
-			    *len = 4;
-			    return 1;
-			}
-			return USBD_REQ_HANDLED;
-			}
-         }
-  else if (req->wValue == 0)
-     {
-	 if (req->bRequest == 1)
-        {
-        if ( req->wIndex == 0 )
-			{
-				gpio_set(GPIO1_PORT, GPIO1_PIN);
-				return USBD_REQ_HANDLED;
-			}
-	    else if ( req->wIndex == 1 )
-			{
-				gpio_set(GPIO2_PORT, GPIO2_PIN);
-				return USBD_REQ_HANDLED;
-			}
-		else if ( req->wIndex == 2 )
-			{
-				gpio_set(GPIO3_PORT, GPIO3_PIN);
-				return USBD_REQ_HANDLED;
-			}
-		else if ( req->wIndex == 3 )
-			{
-				gpio_set(GPIO4_PORT, GPIO4_PIN);
-				return USBD_REQ_HANDLED;
-			}
-		else if ( req->wIndex == 4 )
-			{
-				gpio_set(GPIO5_PORT, GPIO5_PIN);
-				return USBD_REQ_HANDLED;
-			}
-        }
-   else if (req->bRequest == 0)
-     {
-     if (req->wIndex == 0)
-			{
-				gpio_clear(GPIO1_PORT, GPIO1_PIN);
-				return USBD_REQ_HANDLED;
-			}
-	    else if ( req->wIndex == 1 )
-			{
-				gpio_clear(GPIO2_PORT, GPIO2_PIN);
-				return USBD_REQ_HANDLED;
-			}
-		else if ( req->wIndex == 2 )
-			{
-				gpio_clear(GPIO3_PORT, GPIO3_PIN);
-				return USBD_REQ_HANDLED;
-			}
-		else if ( req->wIndex == 3 )
-			{
-				gpio_clear(GPIO4_PORT, GPIO4_PIN);
-				return USBD_REQ_HANDLED;
-			}
-		else if ( req->wIndex == 4 )
-			{
-				gpio_clear(GPIO5_PORT, GPIO5_PIN);
-				return USBD_REQ_HANDLED;
-			}
-	  }
-    }
-    else if (req->wValue == 9)
-     {
-     gpio_toggle(GPIOK, GPIO7);
-     if ( req->wIndex == 1 ) {
-        irqtype = IRQ_TYPE_NONE;
-        irq_none();
-     return USBD_REQ_HANDLED;
-     }
-     else if ( req->wIndex == 2 ) {
-        irqtype = IRQ_TYPE_LEVEL_HIGH;
-     return USBD_REQ_HANDLED;
-     }
-     else if ( req->wIndex == 3 ) {
-        irqtype = IRQ_TYPE_LEVEL_LOW;
-     return USBD_REQ_HANDLED;
-     }
-     else if ( req->wIndex == 4 ) {
-//        irqtype = IRQ_TYPE_EDGE_BOTH;
-        irqtype = EXTI_TRIGGER_BOTH;
-        irq_pin_init();
-     return USBD_REQ_HANDLED;
-     }
-     else if ( req->wIndex == 5 ) {
-//        irqtype = IRQ_TYPE_EDGE_RISING;
-        irqtype = EXTI_TRIGGER_RISING;
-        irq_pin_init();
-     return USBD_REQ_HANDLED;
-     }
-     else if ( req->wIndex == 6 ) {
-//        irqtype = IRQ_TYPE_EDGE_FALLING;
-        irqtype = EXTI_TRIGGER_FALLING;
-        irq_pin_init();
-     return USBD_REQ_HANDLED;
-     }
-     }
-   else {
-
-   return USBD_REQ_NEXT_CALLBACK;
-
-   }
-
-   return USBD_REQ_NEXT_CALLBACK;
-}
-*/
-
 // TODO REALY NEED THAT USB-2-UART BEN!
 /*
 static enum usbd_request_return_codes cdcacm_control_request(usbd_device *usbd_dev,
@@ -871,20 +595,8 @@ uint8_t buf[CDCACM_PACKET_SIZE] = {0};
 		while (usbd_ep_write_packet(usbd_dev, 0x81, buf, len) == 0);
 	}
 }
-
-static void usbgpio_set_config(usbd_device *usbd_dev, uint16_t wValue)
-{
-	(void)wValue;
-
-	usbd_ep_setup(usbd_dev, 0x82, USB_ENDPOINT_ATTR_INTERRUPT, 9, NULL);
-
-	usbd_register_control_callback(
-				usbd_dev,
-				USB_REQ_TYPE_VENDOR,
-				USB_REQ_TYPE_TYPE,
-				usb_control_gpio_request);
-}
 */
+
 
 static void usart_setup(void)
 {
@@ -909,8 +621,6 @@ static void ulpi_pins(uint32_t gpioport, uint16_t gpiopins)
 
 static void gpio_setup(void)
 {
-	/* Setup GPIO pin GPIO5 on GPIO port K for LED. */
-	gpio_mode_setup(GPIOK, GPIO_MODE_OUTPUT, GPIO_PUPD_NONE, GPIO5);
 
 	/* Setup GPIO pins for USART1 transmit. */
 	gpio_mode_setup(GPIOA, GPIO_MODE_AF, GPIO_PUPD_NONE, GPIO9);
@@ -924,14 +634,14 @@ static void gpio_setup(void)
 	/* Setup USART1 RX pin as alternate function. */
 	gpio_set_af(GPIOA, GPIO_AF7, GPIO10);
 
-    gpio_mode_setup(GPIOJ, GPIO_MODE_OUTPUT, GPIO_PUPD_NONE, GPIO11);
-	gpio_set_output_options(GPIOJ, GPIO_OTYPE_PP, GPIO_OSPEED_100MHZ, GPIO11);
+//    gpio_mode_setup(GPIOJ, GPIO_MODE_OUTPUT, GPIO_PUPD_NONE, GPIO11);
+//	gpio_set_output_options(GPIOJ, GPIO_OTYPE_PP, GPIO_OSPEED_100MHZ, GPIO11);
 
-	gpio_set(GPIOJ, GPIO11);
+//	gpio_set(GPIOJ, GPIO11);
 //    gpio_clear(GPIOJ, GPIO11);
 
 
-
+/* Setup GPIO pin GPIO5/6/7 on GPIO port K for LED. */
 	gpio_mode_setup(GPIOK, GPIO_MODE_OUTPUT, GPIO_PUPD_NONE, GPIO5);
 	gpio_set_output_options(GPIOK, GPIO_OTYPE_PP, GPIO_OSPEED_2MHZ, GPIO5);
 	gpio_mode_setup(GPIOK, GPIO_MODE_OUTPUT, GPIO_PUPD_NONE, GPIO6);
@@ -983,7 +693,7 @@ static void InitLdoAndPll(void) {
         .divn = 160U,   // 5 x 160 = 800MHz
         .divp = 4U,     // 800 / 4 = 200
         .divq = 5U,    // PLL1Q post-divider gives 80MHz output for FDCAN.
-        .divr = 96U,                // 4mhz for i2c
+        .divr = 48U,                // 4mhz for i2c
     },
     // Set CPU to PLL1P output at 480MHz.
     .core_pre  = RCC_D1CFGR_D1CPRE_BYP,
@@ -1001,6 +711,11 @@ rcc_clock_setup_pll(&pll_config);
 //   Setup SPI buses to use the HSI clock @ 64MHz for SPI log2 based dividers.
 //    rcc_set_spi123_clksel(RCC_D2CCIP1R_SPI123SEL_PLL2P);  // PERCLK is defaulted to HSI.
     rcc_set_i2c123_clksel(RCC_D2CCIP2R_I2C123SEL_PLL3R);
+    //  RCC_D2CCIP1R_SPI45SEL_APB4
+    //  RCC_D2CCIP1R_SPI45SEL_PLL2Q
+    //  RCC_D2CCIP1R_SPI45SEL_PLL3Q
+    //  RCC_D2CCIP1R_SPI45SEL_HSI
+    //  RCC_D2CCIP1R_SPI45SEL_HSE
 //    rcc_set_spi123_clksel(RCC_D2CCIP1R_SPI123SEL_PLL1Q);
     rcc_set_qspi_clksel(RCC_D1CCIPR_QSPISEL_PLL2R);
 //  rcc_set_spi123_clksel(RCC_D2CCIP1R_SPI123SEL_PLL2P);

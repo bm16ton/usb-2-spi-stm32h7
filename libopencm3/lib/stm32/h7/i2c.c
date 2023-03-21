@@ -29,4 +29,110 @@
  */
 
 #include <libopencm3/stm32/i2c.h>
+#include <libopencm3/stm32/syscfg.h>
 
+void enable_i2c1_fmp(bool enable)
+{
+    if (enable == 1) {
+        SYSCFG_PMCR |= SYSCFG_PMCR_I2C1_FMP;
+    }
+    if (enable == 0) {
+        SYSCFG_PMCR &= ~SYSCFG_PMCR_I2C1_FMP;
+    }
+}
+
+void enable_i2c2_fmp(bool enable)
+{
+    if (enable == 1) {
+        SYSCFG_PMCR |= SYSCFG_PMCR_I2C2_FMP;
+    }
+    if (enable == 0) {
+        SYSCFG_PMCR &= ~SYSCFG_PMCR_I2C2_FMP;
+    }
+}
+
+void enable_i2c3_fmp(bool enable)
+{
+    if (enable == 1) {
+        SYSCFG_PMCR |= SYSCFG_PMCR_I2C3_FMP;
+    }
+    if (enable == 0) {
+        SYSCFG_PMCR &= ~SYSCFG_PMCR_I2C3_FMP;
+    }
+}
+
+void enable_i2c4_fmp(bool enable)
+{
+    if (enable == 1) {
+        SYSCFG_PMCR |= SYSCFG_PMCR_I2C4_FMP;
+    }
+    if (enable == 0) {
+        SYSCFG_PMCR &= ~SYSCFG_PMCR_I2C4_FMP;
+    }
+}
+
+void enable_pb6_fmp(bool enable)
+{
+    if (enable == 1) {
+        SYSCFG_PMCR |= SYSCFG_PMCR_I2C_PB6_FMP;
+    }
+    if (enable == 0) {
+        SYSCFG_PMCR &= ~SYSCFG_PMCR_I2C_PB6_FMP;
+    }
+}
+
+void enable_pb7_fmp(bool enable)
+{
+    if (enable == 1) {
+        SYSCFG_PMCR |= SYSCFG_PMCR_I2C_PB7_FMP;
+    }
+    if (enable == 0) {
+        SYSCFG_PMCR &= ~SYSCFG_PMCR_I2C_PB7_FMP;
+    }
+}
+
+void enable_pb8_fmp(bool enable)
+{
+    if (enable == 1) {
+        SYSCFG_PMCR |= SYSCFG_PMCR_I2C_PB8_FMP;
+    }
+    if (enable == 0) {
+        SYSCFG_PMCR &= ~SYSCFG_PMCR_I2C_PB8_FMP;
+    }
+}
+
+void enable_pb9_fmp(bool enable)
+{
+    if (enable == 1) {
+        SYSCFG_PMCR |= SYSCFG_PMCR_I2C_PB9_FMP;
+    }
+    if (enable == 0) {
+        SYSCFG_PMCR &= ~SYSCFG_PMCR_I2C_PB9_FMP;
+    }
+}
+
+void enable_i2c_fmp_port(uint32_t i2c)
+{
+		switch (i2c) {
+	case I2C1:
+		enable_i2c1_fmp(true);
+		break;
+#if defined(I2C2_BASE)
+	case I2C2:
+		enable_i2c2_fmp(true);
+		break;
+#endif
+#if defined(I2C3_BASE)
+	case I2C3:
+		enable_i2c3_fmp(true);
+		break;
+#endif
+#if defined(I2C4_BASE)
+	case I2C4:
+		enable_i2c4_fmp(true);
+		break;
+#endif
+	default:
+		break;
+	}
+}

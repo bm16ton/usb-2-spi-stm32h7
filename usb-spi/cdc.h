@@ -12,7 +12,7 @@ int ramtest(void);
 extern volatile uint32_t systick;
 void put_status(char *m);
 int _write(int file, char *ptr, int len);
-
+//void i2c_init(void);
 uint32_t SysTick_Config(uint32_t ticks);
 
 #endif

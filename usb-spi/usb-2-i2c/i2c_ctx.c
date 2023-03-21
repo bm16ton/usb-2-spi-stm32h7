@@ -31,7 +31,7 @@
 #include <libopencm3/stm32/gpio.h>
 #include <libopencm3/cm3/nvic.h>
 #include "regdump.h"
-
+#include "../cdc.h"
 #include "util.h"
 #include "i2cusb.h"
 
@@ -75,6 +75,8 @@ void i2c_ctx_init(i2c_ctx_t *c, uint32_t pi2c)
 void i2c_ctx_reset(i2c_ctx_t *c)
 {
     (void)c;
+
+
     	switch (c->i2c) {
 	case I2C1:
         rcc_periph_clock_enable(RCC_I2C1);
@@ -84,11 +86,9 @@ void i2c_ctx_reset(i2c_ctx_t *c)
 		break;
 	case I2C3:
         rcc_periph_clock_enable(RCC_I2C3);
-		break; 
+		break;
 	}
 
-
-	/* Setup GPIO pin GPIO_USART2_TX/GPIO9 on GPIO port A for transmit. */
 	gpio_mode_setup(GPIOH, GPIO_MODE_AF, GPIO_PUPD_PULLUP, GPIO7 | GPIO8);
 	gpio_set_output_options(GPIOH, GPIO_OTYPE_OD, GPIO_OSPEED_100MHZ,
 				GPIO7 | GPIO8);
@@ -97,14 +97,16 @@ void i2c_ctx_reset(i2c_ctx_t *c)
 	i2c_reset(c->i2c);
     i2c_disable_analog_filter(c->i2c);
 	i2c_set_digital_filter(c->i2c, 0);
-	i2c_set_speed(c->i2c, i2c_speed_fm_400k, 8);
+//	i2c_set_speed(c->i2c, i2c_speed_fm_400k, 8);
+    i2c_set_speed(c->i2c, i2c_speed_fmp_1m, 8);
 	i2c_set_7bit_addr_mode(c->i2c);
 	i2c_peripheral_enable(c->i2c);
 	i2c_set_own_7bit_slave_address(c->i2c, 0x00);
-	
+
 	 for (uint32_t loop = 0; loop < 150; ++loop) {
         __asm__("nop");
-    } 
+    }
+
 }
 
 pt_state_t i2c_ctx_start(i2c_ctx_t *c, uint16_t addr, uint16_t size, int dir)
@@ -122,7 +124,7 @@ pt_state_t i2c_ctx_start(i2c_ctx_t *c, uint16_t addr, uint16_t size, int dir)
 	i2c_set_bytes_to_transfer(c->i2c, size);
 	i2c_disable_autoend(c->i2c);
 	i2c_send_start(c->i2c);
-    
+
     while (i2c_is_start(c->i2c)) {
         ;
 	}
@@ -140,13 +142,13 @@ pt_state_t i2c_ctx_start(i2c_ctx_t *c, uint16_t addr, uint16_t size, int dir)
 
 pt_state_t i2c_ctx_senddata(i2c_ctx_t *c, uint8_t *data, uint16_t size)
 {
-    
+
 	PT_BEGIN(&c->leaf);
 	if (size != 0) {
     int i = 0;
 	while (size--) {
 	if (i2c_stop_detected(c->i2c)) {
-	    printf("i2c send stop detected\r\n"); 
+	    printf("i2c send stop detected\r\n");
 		/* Clear potential stop detection */
 		i2c_clear_stop(c->i2c);
 	}
@@ -157,11 +159,11 @@ pt_state_t i2c_ctx_senddata(i2c_ctx_t *c, uint8_t *data, uint16_t size)
 		i2c_send_stop(c->i2c);
 		c->err = EIO;
 	}
-	
+
 	i2c_send_data(c->i2c, *data++);
 	printf("sent data = 0x%04X\r\n", (uint8_t)data[i]);  //perfect delay will replace with register stuff
 	i++;
-    }   
+    }
  }
     while (!i2c_transfer_complete(c->i2c));
 
@@ -172,17 +174,17 @@ pt_state_t i2c_ctx_getdata(i2c_ctx_t *c, uint8_t *data, uint16_t size)
 {
 	PT_BEGIN(&c->leaf);
 	 if (size != 0) {
-        
+
 		for (size_t i = 0; i < size; i++) {
 			while (i2c_received_data(c->i2c) == 0);
 			data[i] = i2c_get_data(c->i2c);
 			for (uint32_t loop = 0; loop < 550; ++loop) {
                 __asm__("nop");
-                } 
+                }
 			printf("get data = 0x%04X\r\n", data[i]);  //simply handy
 		}
-		
-    } 
+
+    }
 
 	PT_END();
 }

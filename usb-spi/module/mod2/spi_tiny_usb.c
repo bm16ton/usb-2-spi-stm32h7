@@ -676,7 +676,7 @@ static const struct software_node nrf24_node = {
 
 static struct dev_io_desc_data usb_spi_bus_dev_io[] = {
        { "interrupts", 4, GPIO_ACTIVE_HIGH },
-       { "ce", 1, GPIO_ACTIVE_HIGH },
+       { "ce", 1, GPIOD_OUT_HIGH },
        { "csn", 2, GPIO_ACTIVE_LOW },
 };
 
@@ -832,7 +832,7 @@ static int spi_tiny_usb_probe(struct usb_interface *interface,
 			      const struct usb_device_id *id)
 {
     struct device *dev = &interface->dev;
-	struct spi_tiny_usb *priv; // = spi_master_get_devdata(master);
+	struct spi_tiny_usb *priv;
 	struct usb_host_interface *iface_desc;
     struct usb_endpoint_descriptor *endpoint, *bulk_in, *bulk_out;
     struct usbspi_intf_info *info;
@@ -969,7 +969,8 @@ if (noirq == 0) {
 
    gbase = (cpu_to_le16(priv->chip.base));
 
-
+// Some sorta thing where interrupt irq gpio seems to want to be claimed and released before
+// working with external drivers. This can also be done via /sys and userland. Probly something im missing forcing this
     priv->interrupt_gpio = gpiochip_request_own_desc(&priv->chip,
                                                 4,
                                                 "interrupt",
@@ -979,6 +980,10 @@ if (noirq == 0) {
     i2c_gpio_to_irq(&priv->chip, 4);
     irq_set_irq_type(GPIO_irqNumber, irqt);
     gpiochip_free_own_desc(priv->interrupt_gpio);
+
+    }
+// the nrf24 driver im using seemed to have issues setting gpio to output needs retesting
+/*
         priv->ce_gpiod = gpiochip_request_own_desc(&priv->chip,
                                                 1,
                                                 "ce",
@@ -987,7 +992,7 @@ if (noirq == 0) {
 
         gpiod_direction_output(priv->ce_gpiod, true);
         gpiochip_free_own_desc(priv->ce_gpiod);
-   }
+*/
 	retval = usb_find_common_endpoints(interface->cur_altsetting,
 			&bulk_in, &bulk_out, NULL, NULL);
 	if (retval) {

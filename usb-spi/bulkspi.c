@@ -26,8 +26,8 @@
 #define GPIO2_PIN    GPIO7
 #define GPIO3_PORT   GPIOG
 #define GPIO3_PIN    GPIO7
-#define GPIO4_PORT   GPIOJ
-#define GPIO4_PIN    GPIO11
+#define GPIO4_PORT   GPIOH
+#define GPIO4_PIN    GPIO15
 #define GPIO5_PORT   GPIOK
 #define GPIO5_PIN    GPIO1
 #define GPIO6_PORT
@@ -325,26 +325,26 @@ static enum usbd_request_return_codes spi_control_request(
 
     case CMD_CSNUM:
         if (req->wValue == 0) {
-        CSPORT = GPIOA;
-        CSPIN = GPIO8;
+        CSPORT = GPIO1_PORT;
+        CSPIN = GPIO1_PIN;
         } else if (req->wValue == 1) {
-        CSPORT = GPIOC;
-        CSPIN = GPIO7;
+        CSPORT = GPIO2_PORT;
+        CSPIN = GPIO2_PIN;
         } else if (req->wValue == 2) {
-        CSPORT = GPIOG;
-        CSPIN = GPIO7;
+        CSPORT = GPIO3_PORT;
+        CSPIN = GPIO3_PIN;
         } else if (req->wValue == 3) {
-        CSPORT = GPIOJ;
-        CSPIN = GPIO11;
+        CSPORT = GPIO4_PORT;
+        CSPIN = GPIO4_PIN;
         }
         return USBD_REQ_HANDLED;
 
     case CMD_TXZEROS:
 	    dest2[0] = 0x00;
-	    gpio_clear(GPIOA, GPIO8);
+	    gpio_clear(CSPORT, CSPIN);
 	    for (uint16_t i = 0; i < req->wValue; i++)
         {
-            gpio_clear(GPIOA, GPIO8);
+            gpio_clear(CSPORT, CSPIN);
             __asm__("nop");
 		    __asm__("nop");
 		    __asm__("nop");
@@ -365,7 +365,7 @@ static enum usbd_request_return_codes spi_control_request(
 		    __asm__("nop");
 		    __asm__("nop");
 		    __asm__("nop");
-		    gpio_set(GPIOA, GPIO8);
+		    gpio_set(CSPORT, CSPIN);
 		    __asm__("nop");
 		    __asm__("nop");
 		    __asm__("nop");
@@ -373,7 +373,7 @@ static enum usbd_request_return_codes spi_control_request(
 		    __asm__("nop");
 		    __asm__("nop");
 	    }
-        gpio_set(GPIOA, GPIO8);
+        gpio_set(CSPORT, CSPIN);
 		return USBD_REQ_HANDLED;
 
 	case CMD_RX:
