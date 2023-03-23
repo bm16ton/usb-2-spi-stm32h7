@@ -45,6 +45,7 @@
 #include "bulkspi.h"
 #include "usb-2-i2c/i2c_ctx.h"
 #include <libopencm3/stm32/syscfg.h>
+#include "vars.h"
 
 #define USART_CONSOLE USART1
 volatile uint32_t systick = 0;
@@ -54,7 +55,8 @@ volatile uint32_t systick = 0;
 void spiRelInit(void);
 void spiInit(void);
 void spi_test(void);
-
+int i2cspeed = 2;
+int bootnum = 0;
 void get_buffered_line(void);
 #define CDCACM_PACKET_SIZE 512
 #define CDCACM_INTERFACE_0_DATA_IN_ENDPOINT 0x81
@@ -100,7 +102,7 @@ const struct usb_interface_descriptor i2c_iface = {
 	.bInterfaceClass = 0,
 	.bInterfaceSubClass = 0,
 	.bInterfaceProtocol = 0,
-	.iInterface = 0,
+	.iInterface = 3,
 
 	.endpoint = &i2c_endpoint,
 };
@@ -178,12 +180,12 @@ static const struct usb_config_descriptor config = {
 static const char * usb_strings[] = {
 	"16ton productions",
 	"Envie",
-	"TEST",
+	"i2c-16ton",
 	"github.com/bm16ton",
 	"usb-2-spi",
 };
 
-void i2c_init(void);
+//void i2c_init(void);
 uint32_t time_now(void);
 uint64_t time64_now(void);
 
@@ -413,7 +415,14 @@ void i2c_init(void)
     i2c_disable_analog_filter(I2C3);
 	i2c_set_digital_filter(I2C3, 0);
 //	i2c_set_speed(I2C3, i2c_speed_fm_400k, 8);
-	i2c_set_speed(I2C3, i2c_speed_fmp_1m, 8);
+if (i2cspeed == 1) {
+    i2c_set_speed(I2C3, i2c_speed_sm_100k, 8);
+} else if (i2cspeed == 2) {
+    i2c_set_speed(I2C3, i2c_speed_fm_400k, 8);
+} else if (i2cspeed == 3) {
+    i2c_set_speed(I2C3, i2c_speed_fmp_1m, 16);
+}
+//   i2c_set_speed(I2C3, i2c_speed_fmp_1m, 16);
 	i2c_set_7bit_addr_mode(I2C3);
 	i2c_peripheral_enable(I2C3);
 	i2c_set_own_7bit_slave_address(I2C3, 0x00);
@@ -421,10 +430,12 @@ void i2c_init(void)
 	for (uint32_t loop = 0; loop < 1500; ++loop) {
         __asm__("nop");
     }
+    if (bootnum == 0) {
 	i2c_ctx_t ctx;
 	i2c_ctx_init(&ctx, I2C3);
 	i2c_ctx_reset(&ctx);
-
+    }
+    bootnum = 1;
 }
 
 static uint64_t sys_tick_counter;
@@ -453,7 +464,7 @@ void delay_ms( uint32_t ms ) {
 
 uint32_t SysTick_Config(uint32_t ticks) {
 (void)ticks;
-systick_set_reload(400000000-1);
+systick_set_reload(480000000-1);
 
   STK_CSR  = STK_CSR_CLKSOURCE |
                    STK_CSR_TICKINT   |
@@ -692,8 +703,8 @@ static void InitLdoAndPll(void) {
         .divm = 5U,     // 2MHz PLL1 base clock pre-multiplier, cancels post div2.
         .divn = 160U,   // 5 x 160 = 800MHz
         .divp = 4U,     // 800 / 4 = 200
-        .divq = 5U,    // PLL1Q post-divider gives 80MHz output for FDCAN.
-        .divr = 48U,                // 4mhz for i2c
+        .divq = 8U,    // post-divider 32 gives 6.25MHz, 16 12.5mhz, 8 25mhz, 4 50mhz.
+        .divr = 48U, //.divr = 48U,  // 8.33mhz for i2c 400K 16.66MHZ FMP
     },
     // Set CPU to PLL1P output at 480MHz.
     .core_pre  = RCC_D1CFGR_D1CPRE_BYP,

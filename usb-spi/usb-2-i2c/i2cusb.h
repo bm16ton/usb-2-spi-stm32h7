@@ -8,6 +8,6 @@
 uint64_t time64_now(void);
 uint32_t time_now(void);
 void usb_set_config(usbd_device *usbd_dev, uint16_t wValue);
-void i2c_init(void);
+//void i2c_init(void);
 
 #endif

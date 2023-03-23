@@ -34,6 +34,7 @@
 #include "../cdc.h"
 #include "util.h"
 #include "i2cusb.h"
+#include "../vars.h"
 
 #define I2C_WRITE			0
 #define I2C_READ            1
@@ -98,7 +99,14 @@ void i2c_ctx_reset(i2c_ctx_t *c)
     i2c_disable_analog_filter(c->i2c);
 	i2c_set_digital_filter(c->i2c, 0);
 //	i2c_set_speed(c->i2c, i2c_speed_fm_400k, 8);
-    i2c_set_speed(c->i2c, i2c_speed_fmp_1m, 8);
+//    enable_i2c_fmp_port(I2C3);
+if (i2cspeed == 1) {
+    i2c_set_speed(c->i2c, i2c_speed_sm_100k, 8);
+} else if (i2cspeed == 2) {
+    i2c_set_speed(c->i2c, i2c_speed_fm_400k, 8);
+} else if (i2cspeed == 3) {
+    i2c_set_speed(c->i2c, i2c_speed_fmp_1m, 16);
+}
 	i2c_set_7bit_addr_mode(c->i2c);
 	i2c_peripheral_enable(c->i2c);
 	i2c_set_own_7bit_slave_address(c->i2c, 0x00);

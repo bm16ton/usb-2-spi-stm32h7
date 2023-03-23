@@ -16,6 +16,7 @@
 #include <ctype.h>
 #include "cdc.h"
 #include "usb.h"
+#include "vars.h"
 #include "bulkspi.h"
 #include <libopencm3/stm32/exti.h>
 #include <libopencm3/cm3/nvic.h>
@@ -26,8 +27,8 @@
 #define GPIO2_PIN    GPIO7
 #define GPIO3_PORT   GPIOG
 #define GPIO3_PIN    GPIO7
-#define GPIO4_PORT   GPIOH
-#define GPIO4_PIN    GPIO15
+#define GPIO4_PORT   GPIOA
+#define GPIO4_PIN    GPIO4
 #define GPIO5_PORT   GPIOK
 #define GPIO5_PIN    GPIO1
 #define GPIO6_PORT
@@ -162,8 +163,8 @@ static void usbgpio_input(int gpio)
 #define CMD_CSMODE     73
 #define CMD_CSNUM      76
 #define CMD_LSB        160
-
-
+#define CMD_i2cspeed     81
+#define CMD_i2cspeedrpt 82
 #define STATUS_IDLE	   0
 uint8_t spibuf[64];
 static int configured;
@@ -288,6 +289,9 @@ static enum usbd_request_return_codes spi_control_request(
 	static int p = 0;
 	uint8_t temp;
 
+   (*len) = 1;
+   (*buf)[0] = 1; //success
+
     if (req->bRequest > 50) {
 	switch (req->bRequest) {
 
@@ -297,6 +301,17 @@ static enum usbd_request_return_codes spi_control_request(
 
     case CMD_MODE:
         upd_spi_mode(req->wValue);
+        return USBD_REQ_HANDLED;
+
+    case CMD_i2cspeed:
+        i2cspeed = req->wValue;
+        i2c_init();
+        return USBD_REQ_HANDLED;
+
+    case CMD_i2cspeedrpt:
+        (*buf)[0] = 1;
+        (*buf)[1] = i2cspeed;
+		*len = 2;
         return USBD_REQ_HANDLED;
 
     case CMD_HZ:

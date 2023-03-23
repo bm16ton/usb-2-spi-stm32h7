@@ -2,6 +2,7 @@ Portenta h7 usb to spi and usb to i2c with gpio/irq support.
 
 Edit usb-spi-git/usb-spi/module/mod2/spi_tiny_usb.c
 
+UPDATE: Added i2c fast mode plus (1mb) support, and abilityt to switch i2c speed via sysfs attribute called "i2cspeed" simply echo 100, 400, or 1000 to it. This does internally disable the i2c bus during the switch on the stm device but not in driver, so depending, any currently connected/loaded i2c devices/drivers might freak. I would unload any drivers first.
 
 edit the struct "static struct spi_board_info usb_spi_bus_info[]" at time of writing is line 691. Set the spi device settings modalias, cs number, spi flags etc. Add any additional IO to static struct dev_io_desc_data usb_spi_bus_dev_io[] at time of writing line 677. Then any additional platform data add to/create a property_entry example line 668.
 
