@@ -421,20 +421,17 @@ static void builtin_overlay(void)
 
 }
 
-static struct device dtbocfg = {
-	.init_name = MODNAME,
-//	.release = dtbocfg_overlay_release2,
-};
+
 
 
 /**
  *
  dtbocfg_module_init()
  */
-static __init int dtbocfg_module_init(void)
+static int __init dtbocfg_module_init(void)
 {
     int retval = 0;
-    int rc;
+
     pr_info("%s\n", __func__);
 
     config_group_init(&dtbocfg_root_subsys.su_group);
@@ -453,12 +450,6 @@ static __init int dtbocfg_module_init(void)
     }
 
 
-	rc = device_register(&dtbocfg);
-	if (rc) {
-		put_device(&dtbocfg);
-		pr_err(MODNAME ": failed to register device");
-		return rc;
-	}
 
     builtin_overlay();
     printk("%s: OK\n", __func__);
@@ -473,16 +464,14 @@ static __init int dtbocfg_module_init(void)
 /**
  * dtbocfg_module_exit()
  */
-static void dtbocfg_module_exit(void)
+static void __exit dtbocfg_module_exit(void)
 {
     configfs_unregister_group(&dtbocfg_overlay_group);
     configfs_unregister_subsystem(&dtbocfg_root_subsys);
 }
 
-
-//module_init(dtbocfg_module_init);
+module_init(dtbocfg_module_init);
 module_exit(dtbocfg_module_exit);
-rootfs_initcall(dtbocfg_module_init);
 
 MODULE_AUTHOR("ikwzm");
 MODULE_DESCRIPTION("Device Tree Overlay Configuration File System");
