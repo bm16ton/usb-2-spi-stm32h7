@@ -1,5 +1,5 @@
 ifneq ($(KERNELRELEASE),)
-obj-m := spi_plat_usb.o
+obj-m := spi-plat-usb.o
 
 else
 

@@ -480,28 +480,31 @@ static int usbspi_remove(struct platform_device *pdev)
 }
 
 static const struct of_device_id usbspi_of_match[] = {
-	{ .compatible = "usbspi,spi_plat_usb", },
+	{.compatible = "spi-plat-usb",},
 	{},
 };
+
 MODULE_DEVICE_TABLE(of, usbspi_of_match);
 
 static const struct spi_device_id usbspi_ids[] = {
-	{ .name = "spi_plat_usb", (unsigned long)usbspi_probe },
+	{.name = "spi-plat-usb", (unsigned long) usbspi_probe},
 	{},
 };
+
 MODULE_DEVICE_TABLE(spi, usbspi_ids);
 
 static struct platform_driver spi_plat_usb = {
 	.driver		= {
-				.name	= "spi_plat_usb",
+		   .name = "spi-plat-usb",
 				.of_match_table = of_match_ptr(usbspi_of_match),
 	},
 	.probe		= usbspi_probe,
 	.remove		= usbspi_remove,
 };
+
 module_platform_driver(spi_plat_usb);
 
-MODULE_ALIAS("platform:spi_plat_usb");
+MODULE_ALIAS ("platform:spi-plat-usb");
 MODULE_AUTHOR("Anatolij Gustschin <agust@denx.de");
 MODULE_DESCRIPTION("USBSPI master driver");
 MODULE_LICENSE("GPL v2");
