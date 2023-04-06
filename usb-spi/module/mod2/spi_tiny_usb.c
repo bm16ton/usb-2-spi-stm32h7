@@ -765,7 +765,7 @@ static struct spi_board_info usb_spi_bus_info[] = {
 */
 };
 
-#define SPI_INTF_DEVNAME	"spi-plat-usb"
+#define SPI_INTF_DEVNAME	"drvspi_plat_usb"
 
 static const struct usb_spi_platform_data usbspi_bus_plat_data = {
 	.ops = &usbspi_intf_ops,

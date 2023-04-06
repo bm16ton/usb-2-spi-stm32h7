@@ -329,6 +329,133 @@ static int usbspi_init_io(struct spi_controller *master, unsigned int dev_idx)
 	return 0;
 }
 
+static int drvusbspi_probe(struct platform_device *pdev)
+{
+	const struct usb_spi_platform_data *pd;
+	struct device *dev = &pdev->dev;
+	struct spi_controller *master;
+	struct spi_tiny_usb *priv;
+	struct gpio_desc *desc;
+
+	u8 num_cs, max_cs = 0;
+	unsigned int i;
+	int ret;
+    printk("second probe function for driver\n");
+    printk("second probe function for driver\n");
+    printk("second probe function for driver\n");
+    printk("second probe function for driver\n");
+
+  	pd = dev->platform_data;
+	if (!pd) {
+		dev_err(dev, "Missing platform data.\n");
+		return -EINVAL;
+	}
+
+/*	if (!pd->ops ||
+	    !pd->ops->read_data || !pd->ops->write_data ||
+	    !pd->ops->lock || !pd->ops->unlock)
+	    	return -EINVAL;
+
+	if (pd->spi_info_len > 5)
+		return -EINVAL;
+*/
+	/* Find max. slave chipselect number */
+	num_cs = pd->spi_info_len;
+
+	for (i = 0; i < num_cs; i++) {
+		if (max_cs < pd->spi_info[i].chip_select)
+			max_cs = pd->spi_info[i].chip_select;
+	}
+
+	if (max_cs > 4) {
+		printk( "Invalid max CS in platform data: %d\n", max_cs);
+	}
+	printk( "spi_plat_usb CS count %u, max CS %u\n", num_cs, max_cs);
+	max_cs += 1; /* including CS0 */
+	master = spi_alloc_master(&pdev->dev, sizeof(*priv));
+	if (!master)
+	    printk("failed spi_alloc_master\n");
+//		return -ENOMEM;
+//    device_set_node(&master->dev, dev_fwnode(dev));
+	platform_set_drvdata(pdev, master);
+	priv = spi_controller_get_devdata(master);
+	priv->master = master;
+	priv->pdev = pdev;
+	priv->intf = to_usb_interface(dev->parent);
+	priv->iops = pd->ops;
+	master->bus_num = -1;
+	master->mode_bits = SPI_CPOL | SPI_CPHA | SPI_CS_HIGH | SPI_LSB_FIRST; //| SPI_LOOP |
+	master->num_chipselect = max_cs;
+	master->min_speed_hz = 450;
+	master->max_speed_hz = 30000000;
+	master->bits_per_word_mask = SPI_BPW_RANGE_MASK(4, 16);
+	master->set_cs = setcs;
+	master->transfer_one_message = spi_tiny_usb_xfer_one;
+	master->auto_runtime_pm = false;
+
+	priv->cs_gpios = devm_kcalloc(&master->dev, max_cs, sizeof(desc),
+				      GFP_KERNEL);
+	if (!priv->cs_gpios) {
+	    printk("failed to set mem for storing cs\n");
+		spi_controller_put(master);
+		return -ENOMEM;
+	}
+
+  pd->spi_info->irq = GPIO_irqNumber;
+
+	for (i = 0; i < num_cs; i++) {
+		unsigned int idx = pd->spi_info[i].chip_select;
+		printk("CS num: %u\n", idx);
+		desc = devm_gpiod_get_index(&priv->pdev->dev, "spi-cs",
+					    i, GPIOD_OUT_LOW);
+		if (IS_ERR(desc)) {
+			ret = PTR_ERR(desc);
+			dev_err(&pdev->dev, "CS %u gpiod err: %d\n", i, ret);
+			continue;
+		}
+		priv->cs_gpios[idx] = desc;
+	}
+
+	ret = spi_register_controller(master);
+	if (ret < 0) {
+		printk("Failed to register spi master\n");
+		spi_controller_put(master);
+		return ret;
+	}
+
+    priv->oldspihz = 7777;
+	priv->last_mode = 0xffff;
+	for (i = 0; i < pd->spi_info_len; i++) {
+		struct spi_device *sdev;
+		u16 cs;
+
+		printk("slave: '%s', CS: %u\n",
+			pd->spi_info[i].modalias, pd->spi_info[i].chip_select);
+
+		ret = usbspi_init_io(master, i);
+		if (ret < 0) {
+			printk("Can't add slave IO: %d\n", ret);
+			continue;
+		}
+
+//        sdev->cs_gpiod = priv->cs_gpios[0];
+		sdev = spi_new_device(master, &pd->spi_info[i]);
+		if (!sdev) {
+			cs = pd->spi_info[i].chip_select;
+			printk("spi_plat_usb Can't add slave '%s', CS %u\n",
+				 pd->spi_info[i].modalias, cs);
+			if (priv->lookup[cs]) {
+			    printk("spi_plat_usb  failed lookup.cs\n");
+				gpiod_remove_lookup_table(priv->lookup[cs]);
+				priv->lookup[cs] = NULL;
+			}
+		}
+	}
+
+    printk("%s: spi pdev %p\n", __func__, priv->pdev);
+	return 0;
+}
+
 static int usbspi_probe(struct platform_device *pdev)
 {
 	const struct usb_spi_platform_data *pd;
@@ -493,6 +620,15 @@ static const struct spi_device_id usbspi_ids[] = {
 
 MODULE_DEVICE_TABLE(spi, usbspi_ids);
 
+static const struct platform_device_id usb_plat_ids[] = {
+	{"usb_plat_usb", (unsigned long) usbspi_probe},
+	{"dtbspi_plat_usb", (unsigned long) usbspi_probe},
+	{"drvspi_plat_usb", (unsigned long) drvusbspi_probe},
+	{},
+};
+
+MODULE_DEVICE_TABLE (platform, usb_plat_ids);
+
 static struct platform_driver spi_plat_usb = {
 	.driver		= {
 		   .name = "spi-plat-usb",
@@ -500,6 +636,7 @@ static struct platform_driver spi_plat_usb = {
 	},
 	.probe		= usbspi_probe,
 	.remove		= usbspi_remove,
+	.id_table = usb_plat_ids,
 };
 
 module_platform_driver(spi_plat_usb);

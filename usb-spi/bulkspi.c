@@ -173,6 +173,8 @@ uint8_t spibuf512[1024] = {0x00};
 
 int diffr = 0;
 //void recusb_sendspi(uint16_t len);
+void setupcs(void);
+
 int recspi_sendusb(usbd_device *dev, uint16_t len);
 
 static uint8_t status = STATUS_IDLE;
@@ -336,6 +338,7 @@ static enum usbd_request_return_codes spi_control_request(
 
     case CMD_CSMODE:
         cshigh = req->wValue;
+        setupcs();
         return USBD_REQ_HANDLED;
 
     case CMD_CSNUM:
@@ -682,6 +685,59 @@ int recspi_sendusb(usbd_device *dev, uint16_t len) {
 
 void spi_ss_out_cb(usbd_device *dev, uint8_t ep);
 void spi_ss_in_cb(usbd_device *dev, uint8_t ep);
+void setcsend(void);
+void setcsend2(void);
+void setcsend3(void);
+void setcsstart(void);
+void setcsstart2(void);
+void setcsstart3(void);
+
+
+void setcsend(void) {
+// gpio set
+GPIO_BSRR(CSPORT) = CSPIN;
+}
+
+void setcsend2(void) {
+// gpio clear
+GPIO_BSRR(CSPORT) = (CSPIN << 16);
+}
+
+void setcsend3(void) {
+// nada dont nuthin
+;
+}
+
+void setcsstart2(void) {
+// gpio set
+GPIO_BSRR(CSPORT) = CSPIN;
+}
+
+void setcsstart(void) {
+// gpio clear
+GPIO_BSRR(CSPORT) = (CSPIN << 16);
+}
+
+void setcsstart3(void) {
+// nada dont nuthin
+;
+}
+
+void ( *pfsetcsend) (void) = &setcsend;
+void ( *pfsetcstart) (void) = &setcsstart;
+
+void setupcs(void) {
+if (cshigh == 1) {
+    pfsetcsend = &setcsend2;
+    pfsetcstart = &setcsstart2;
+    } else if (cshigh == 0) {
+    pfsetcsend = &setcsend;
+    pfsetcstart = &setcsstart;
+    } else {
+    pfsetcsend = &setcsend3;
+    pfsetcstart = &setcsstart3;
+    }
+}
 
 
 void spi_ss_out_cb(usbd_device *dev, uint8_t ep)
@@ -697,13 +753,18 @@ void spi_ss_out_cb(usbd_device *dev, uint8_t ep)
         ;
         }
 
+
+
     usbd_ep_nak_set(dev, ep, 1);
         if (x > 0) {
-        if (cshigh == 0) {
+/*        if (cshigh == 0) {
         gpio_clear(CSPORT, CSPIN);
         } else {
         gpio_set(CSPORT, CSPIN);
         }
+*/
+        (*pfsetcstart)();
+
         for (uint16_t i = 0; i < x; i++)
         {
             while (!(SPI_SR(SPI2) & SPI_SR_TXP));  //todo reading/writing should be one op
@@ -714,11 +775,13 @@ void spi_ss_out_cb(usbd_device *dev, uint8_t ep)
             }
 		    spibuf512[i] = my_spi_flush(SPI2);
 		        }
-		     if (cshigh == 0) {
+/*		     if (cshigh == 0) {
 		     gpio_set(CSPORT, CSPIN);
 		     } else {
 		     gpio_clear(CSPORT, CSPIN);
 		     }
+*/
+            (*pfsetcsend)();
         }
 	usbd_ep_nak_set(dev, ep, 0);
 
